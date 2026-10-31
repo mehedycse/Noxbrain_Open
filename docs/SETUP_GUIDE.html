@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<title>NoxBrain Solar Monitor – Setup নির্দেশনা</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm 18mm 15mm; }
+  body { font-family: "Nirmala UI", "Segoe UI", sans-serif; font-size: 10.5pt; line-height: 1.55; color: #1a1a1a; }
+  h1 { font-size: 20pt; margin: 0 0 4px; }
+  .sub { color: #555; margin: 0 0 14px; }
+  h2 { font-size: 13.5pt; margin: 18px 0 6px; padding-bottom: 3px; border-bottom: 1.5px solid #d97706; break-after: avoid; }
+  h3 { font-size: 11.5pt; margin: 12px 0 4px; break-after: avoid; }
+  p { margin: 4px 0; }
+  ul, ol { margin: 4px 0 4px 20px; padding: 0; }
+  li { margin: 2px 0; }
+  a { color: #0b6e99; word-break: break-all; }
+  code { font-family: Consolas, monospace; background: #f2f2f2; padding: 0 3px; border-radius: 3px; }
+  .note { background: #fff7e6; border-left: 3px solid #d97706; padding: 6px 10px; margin: 6px 0; }
+  table { border-collapse: collapse; margin: 6px 0; }
+  td, th { border: 1px solid #ccc; padding: 3px 10px; text-align: left; }
+  section { break-inside: auto; }
+  .footer { margin-top: 20px; color: #777; font-size: 9pt; }
+</style>
+</head>
+<body>
+
+<h1>NoxBrain Solar Monitor</h1>
+<p class="sub">শুরু থেকে শেষ পর্যন্ত Setup নির্দেশনা · Firmware 1.1.1 ও নতুন app অনুযায়ী</p>
+
+<h2>যা যা লাগবে</h2>
+<ul>
+  <li>ESP32 বা ESP32-S3 board (কমপক্ষে 4MB flash)</li>
+  <li>Data USB cable (শুধু charging cable হলে চলবে না)</li>
+  <li>Windows, Mac বা Linux computer, সাথে <b>Google Chrome</b> অথবা <b>Microsoft Edge</b> browser
+    <ul>
+      <li>Chrome: <a href="https://www.google.com/chrome/">https://www.google.com/chrome/</a></li>
+      <li>Edge: <a href="https://www.microsoft.com/edge">https://www.microsoft.com/edge</a></li>
+    </ul>
+  </li>
+  <li>Android phone, <b>Android 10 বা তার পরের version</b></li>
+  <li>বাড়ির <b>2.4 GHz</b> Wi-Fi (5 GHz Wi-Fi-তে ESP32 যুক্ত হতে পারে না)</li>
+  <li>SRNE Shiner solar charge controller। সমর্থিত model: <b>Shiner2410, 2420, 2430, 2440, 2460</b></li>
+  <li>JK Smart BMS (না থাকলেও চলবে)</li>
+  <li>একটা Google account (Firebase-এর জন্য, বিনামূল্যে)</li>
+</ul>
+
+<h2>ধাপ ১: Google account তৈরি</h2>
+<p>আগে থেকে Gmail থাকলে এই ধাপ বাদ দিন।</p>
+<ol>
+  <li>যান: <a href="https://accounts.google.com/signup">https://accounts.google.com/signup</a></li>
+  <li>নাম, জন্মতারিখ আর password দিয়ে account তৈরি করুন।</li>
+</ol>
+
+<h2>ধাপ ২: নিজের Firebase project তৈরি</h2>
+<p>প্রত্যেক ব্যবহারকারীর data থাকে তার নিজের Firebase-এ, অন্য কেউ দেখতে পারে না। বিনামূল্যের <b>Spark plan</b>-ই যথেষ্ট, কোনো card লাগে না।</p>
+<ol>
+  <li>যান: <a href="https://console.firebase.google.com/">https://console.firebase.google.com/</a> এবং Google account দিয়ে login করুন।</li>
+  <li><b>"Create a project"</b> (বা "Add project") চাপুন।</li>
+  <li>Project-এর একটা নাম দিন, যেমন <code>my-solar</code>। <b>Continue</b> চাপুন।</li>
+  <li>Google Analytics লাগবে না, বন্ধ রাখতে পারেন। <b>Create project</b> চাপুন, তৈরি হলে <b>Continue</b>।</li>
+</ol>
+
+<h2>ধাপ ৩: Email/Password login চালু করা ও নিজের account তৈরি</h2>
+<ol>
+  <li>বাম পাশের মেনু থেকে <b>Build → Authentication</b>, তারপর <b>Get started</b>।</li>
+  <li><b>Sign-in method</b> tab-এ <b>Email/Password</b> বেছে নিন। প্রথম switch (<b>Enable</b>) চালু করে <b>Save</b> চাপুন।</li>
+  <li><b>Users</b> tab-এ <b>Add user</b> চাপুন। নিজের একটা email আর একটা শক্ত password দিন, তারপর <b>Add user</b>।
+    <div class="note">এই email আর password পরে app-এ লাগবে। এটা Firebase-এর আলাদা login, আপনার Gmail-এর password না।</div>
+  </li>
+  <li><b>Settings</b> tab-এ <b>User actions</b> অংশে <b>"Enable create (sign-up)"</b> চালু রাখুন। এমনিতেই চালু থাকে। App প্রতিটা gateway-এর জন্য একটা আলাদা সীমিত account নিজেই তৈরি করে, তাই এটা চালু থাকতে হবে।</li>
+</ol>
+
+<h2>ধাপ ৪: Realtime Database তৈরি</h2>
+<ol>
+  <li>বাম মেনু থেকে <b>Build → Realtime Database</b>, তারপর <b>Create Database</b>।</li>
+  <li>Location হিসেবে কাছের অঞ্চল বেছে নিন, যেমন Singapore (asia-southeast1)। <b>Next</b>।</li>
+  <li><b>"Start in locked mode"</b> বেছে নিয়ে <b>Enable</b> চাপুন।</li>
+  <li>Database তৈরি হলে উপরে একটা link দেখাবে, যেমন <code>https://my-solar-default-rtdb.asia-southeast1.firebasedatabase.app</code>। এটাই <b>Database URL</b>। পরে লাগবে, কপি করে রাখুন।</li>
+</ol>
+
+<h2>ধাপ ৫: Web App register করে API Key নেওয়া</h2>
+<ol>
+  <li>বাম মেনুর উপরে ⚙ (gear) চেপে <b>Project settings</b> খুলুন।</li>
+  <li><b>General</b> tab-এ নিচে <b>"Your apps"</b> অংশে <b>&lt;/&gt;</b> (Web) চিহ্ন চাপুন।</li>
+  <li>App-এর একটা নাম দিন, যেমন <code>noxbrain</code>। <b>Firebase Hosting চালু করবেন না।</b> <b>Register app</b> চাপুন।</li>
+  <li>একটা <code>firebaseConfig</code> code দেখাবে। পুরো code-টা কপি করে রাখুন। এর মধ্যে <code>apiKey</code> আর <code>databaseURL</code> আছে। <code>databaseURL</code> না থাকলে ধাপ ৪-এর Database URL ব্যবহার করবেন।</li>
+</ol>
+
+<h2>ধাপ ৬: NoxBrain Android app install</h2>
+<ol>
+  <li>Phone থেকে এই link-এ যান: <b>[APK download link এখানে বসবে]</b><br>Release হলে APK থাকবে <code>https://noxbrain.com/solarapp/</code> ঠিকানায়, file-এর নাম <code>NoxBrain_Solar_&lt;version&gt;.apk</code>।</li>
+  <li>Download শেষ হলে file খুলুন। Android "unknown apps install"-এর অনুমতি চাইলে, যে browser থেকে download করেছেন তাকে অনুমতি দিন।</li>
+  <li><b>Install</b> চাপুন। আগে পুরোনো কোনো NoxBrain app থাকলে, আর install না হলে, পুরোনোটা একবার uninstall করে আবার install করুন। এরপর থেকে app নিজে থেকেই update হবে।</li>
+</ol>
+
+<h2>ধাপ ৭: ESP32-এ firmware flash (এই website থেকে)</h2>
+<ol>
+  <li>ESP32 board-টা data cable দিয়ে computer-এ লাগান।</li>
+  <li>Chrome বা Edge-এ এই পাতা খুলুন। Firmware যাচাই শেষ হলে <b>"Connect &amp; Install Firmware"</b> বোতাম দেখাবে।</li>
+  <li>বোতাম চাপুন। তালিকা থেকে ESP32-এর USB port বেছে নিন, যেমন "USB Serial", "CP210x" বা "CH340"। তারপর <b>Connect</b>।</li>
+  <li><b>Install</b> চাপুন। কয়েক মিনিট অপেক্ষা করুন, শেষ না হওয়া পর্যন্ত cable খুলবেন না।</li>
+  <li>শেষ হলে ESP32 নিজে restart হবে, আর <b><code>NoxBrain-XXXXXX</code></b> নামের একটা setup Wi-Fi চালু করবে।</li>
+</ol>
+<p><b>সমস্যা হলে:</b></p>
+<ul>
+  <li>Port দেখা না গেলে: অন্য cable দিয়ে চেষ্টা করুন, অথবা driver install করুন।
+    <ul>
+      <li>CP210x: <a href="https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers">https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers</a></li>
+      <li>CH340: <a href="https://www.wch-ic.com/downloads/CH341SER_EXE.html">https://www.wch-ic.com/downloads/CH341SER_EXE.html</a></li>
+    </ul>
+  </li>
+  <li>Connect না হলে: ESP32-এর <b>BOOT</b> বোতাম চেপে ধরে cable আবার লাগান, তারপর আবার চেষ্টা করুন।</li>
+</ul>
+
+<h2>ধাপ ৮: App-এর Setup Wizard (৫টি ধাপ)</h2>
+<p>App খুললেই Setup শুরু হবে। উপরে "১/৫, ২/৫…" করে দেখাবে কোন ধাপে আছেন।</p>
+
+<h3>ধাপ ৮.১: Battery mode বেছে নেওয়া</h3>
+<ul>
+  <li><b>Only Controller Mode:</b> BMS নেই, যেমন Flooded বা Sealed lead-acid battery। Battery-র মান (SOC, Remaining Ah, current) controller-এর data থেকে <b>হিসাব করে</b> দেখানো হবে।
+    <div class="note">শর্ত: <b>সব load controller-এর Load terminal-এ থাকতে হবে।</b> Inverter সরাসরি battery-তে লাগানো থাকলে হিসাব ভুল হবে।</div>
+  </li>
+  <li><b>Controller + BMS Mode:</b> JK BMS আছে। Battery-র সব মান BMS থেকে নেওয়া হবে।</li>
+</ul>
+<p>একটা বেছে নিয়ে <b>"পরের ধাপ"</b> চাপুন। পরে Settings → Connectivity থেকে বদলানো যাবে।</p>
+
+<h3>ধাপ ৮.২: Firebase যাচাই</h3>
+<p>এই ধাপে phone-এ <b>Internet চালু রাখুন</b>।</p>
+<ol>
+  <li><b>"Firebase config paste"</b> চাপুন, ধাপ ৫-এ কপি করা <code>firebaseConfig</code> paste করে <b>"পূরণ করুন"</b> চাপুন। Database URL আর API Key নিজে থেকে বসে যাবে।</li>
+  <li><b>Authentication email</b> আর <b>password</b> দিন, ধাপ ৩-এ যেটা তৈরি করেছিলেন।</li>
+  <li><b>Database Rules বসানো:</b>
+    <ul>
+      <li><b>"Firebase তৈরি ও Rules-এর সহজ নির্দেশনা"</b> খুলুন, তারপর <b>"নিজের database-এর Rules কপি করুন"</b> চাপুন।</li>
+      <li>Computer-এ Firebase Console → <b>Realtime Database → Rules</b> tab খুলুন।</li>
+      <li>আগের সব লেখা মুছে কপি করা rules paste করুন, তারপর <b>Publish</b> চাপুন।</li>
+      <li>Rules phone থেকে computer-এ পাঠাতে নিজেকে WhatsApp বা email করতে পারেন।</li>
+      <li>কখনো public read/write চালু করবেন না।</li>
+    </ul>
+  </li>
+  <li>চাইলে <b>"সংযোগ পরীক্ষা করুন"</b> চাপুন। কিছু লেখা ছাড়াই সব ঠিক আছে কি না একটা তালিকায় দেখাবে।</li>
+  <li><b>"যাচাই করে পরের ধাপ"</b> চাপুন।</li>
+</ol>
+
+<h3>ধাপ ৮.৩: Gateway ও বাড়ির Wi-Fi</h3>
+<ol>
+  <li>ESP32 চালু রাখুন। নতুন flash করা ESP32 নিজেই setup Wi-Fi চালু করে। আগে setup করা হয়ে থাকলে <b>BOOT বোতাম ১ সেকেন্ডের মধ্যে ৩ বার</b> চাপুন। Setup Wi-Fi ২০ মিনিট চালু থাকবে।</li>
+  <li><b>"ফোনের Wi-Fi settings খুলুন"</b> চাপুন। <b><code>NoxBrain-XXXXXX</code></b> Wi-Fi-তে যুক্ত হন, password <b><code>85208136</code></b>।</li>
+  <li>Phone "Internet নেই" দেখালে <b>"যুক্ত থাকুন" / "Keep connected"</b> দিন। তারপর app-এ ফিরে আসুন।</li>
+  <li><b>"Gateway যাচাই করে Home Wi-Fi খুঁজুন"</b> চাপুন। ESP32 যে Wi-Fi-গুলো দেখতে পাচ্ছে তার তালিকা আসবে।</li>
+  <li>বাড়ির <b>2.4 GHz</b> Wi-Fi বেছে নিন, তার password দিন।</li>
+  <li><b>"Wi-Fi ও Firebase তথ্য gateway-তে পাঠান"</b> চাপুন।</li>
+</ol>
+
+<h3>ধাপ ৮.৪: Cloud সংযোগ যাচাই</h3>
+<ol>
+  <li>ESP32 বাড়ির Wi-Fi আর Firebase-এ যুক্ত হলে app জানাবে।</li>
+  <li>এবার phone-কে আবার <b>বাড়ির Wi-Fi অথবা mobile data</b>-তে ফিরিয়ে নিন।</li>
+  <li><b>"Internet থেকে Cloud handover যাচাই করুন"</b> চাপুন। সফল হলে setup Wi-Fi নিজে বন্ধ হয়ে যাবে। ব্যর্থ হলে <b>"Gateway-তে ফিরে configuration সংশোধন"</b> চেপে Wi-Fi password ঠিক করুন।</li>
+</ol>
+
+<h3>ধাপ ৮.৫: Controller ও Battery</h3>
+<div class="note">শুরুর আগে SRNE আর JK-র নিজের app বা অন্য কোনো phone থেকে Bluetooth connection বন্ধ রাখুন। Controller আর BMS একসাথে শুধু একটা device-এর সাথে যুক্ত থাকতে পারে।</div>
+<ol>
+  <li><b>Battery mode সেভ করুন:</b> <b>Only Controller Mode</b> হলে <b>Battery type</b> (Flooded / Sealed (AGM) / Gel / Lithium) আর <b>Battery capacity (Ah)</b> দিন। <b>"Battery mode সেভ করুন"</b> চাপুন। "Gateway-এ সেভ করা mode"-এ আপনার mode দেখাবে।</li>
+  <li><b>Controller model:</b> তালিকা থেকে নিজের Shiner model বেছে নিন, যেমন Shiner2420।</li>
+  <li><b>"Controller খুঁজুন / পরিবর্তন"</b> চাপুন। ESP32 নিজে আশেপাশের Bluetooth device খুঁজবে। SRNE controller সাধারণত <b><code>BT-TH-…</code></b> নামে দেখায়। সেটার পাশে <b>"ESP32-তে যুক্ত করুন"</b> চাপুন। প্রথম আসল data পেলে "সংযুক্ত হয়েছে" দেখাবে।</li>
+  <li><b>Controller + BMS Mode হলে:</b> <b>JK protocol layout</b> "Auto-detect" রেখে দিন। <b>"BMS খুঁজুন / পরিবর্তন"</b> চাপুন, তালিকা থেকে JK BMS বেছে <b>"ESP32-তে যুক্ত করুন"</b>।</li>
+  <li>সব ঠিক হলে <b>"Setup সম্পন্ন করে dashboard খুলুন"</b> চাপুন।</li>
+</ol>
+
+<h2>ধাপ ৯: Setup-এর পরে প্রথমবার যা সেট করবেন (Settings)</h2>
+<p>Settings খুলতে username/password চাইলে সেটা আপনার নিজের সেট করা Settings-lock।</p>
+
+<h3>General tab</h3>
+<ul>
+  <li><b>Panel Power (W):</b> আপনার মোট panel কত watt-এর। এটা দিয়ে gateway panel-এর Output % হিসাব করে।</li>
+  <li><b>Battery Capacity (Ah)</b> আর <b>Battery Type:</b> শুধু Only Controller Mode-এ দেখায়।</li>
+  <li><b>Daily Reset Time:</b> দিনের হিসাব কখন নতুন করে শুরু হবে, default সকাল 7:00।</li>
+  <li><b>PV Average Start / End Time:</b> দিনের কোন সময়টুকু ধরে panel-এর গড় হিসাব হবে।</li>
+  <li><b>Save</b> চাপুন। Gateway নিশ্চিত করলে তবেই "saved" দেখাবে।</li>
+  <li><b>User Access Credentials:</b> Settings-এর lock-এর username আর password এখান থেকে বদলাবেন।</li>
+</ul>
+
+<h3>Connectivity tab</h3>
+<ul>
+  <li>Battery mode বদলানো, controller বা BMS বদলানো, Disconnect আর Reconnect।</li>
+  <li><b>Wi-Fi Search:</b> এখনই নতুন Wi-Fi-তে যাওয়া।</li>
+  <li><b>Wi-Fi Manual:</b> আগে থেকে সর্বোচ্চ ৩টা Wi-Fi save করে রাখা। বর্তমান Wi-Fi না থাকলে ESP32 save করা যেটা কাছে পাবে সেটায় যুক্ত হবে।</li>
+</ul>
+
+<h3>Load tab (controller-এর DC Load)</h3>
+<ol>
+  <li>প্রথমবার <b>"Enable controller manual load mode"</b> চাপুন। এরপর থেকে app থেকে Load ON/OFF করা যাবে।</li>
+  <li>আগের অবস্থায় ফেরাতে <b>"Restore previous load mode"</b> চাপুন, যেমন সবসময় চালু বা light/timer।</li>
+</ol>
+
+<h3>Battery tab (controller-এর charge settings)</h3>
+<ol>
+  <li><b>"Read actual controller parameters"</b> চাপলে controller-এর আসল মানগুলো দেখাবে।</li>
+  <li>মান বদলানো যায় শুধু battery type <b>USER</b> হলে। অন্য type হলে <b>"Change controller battery type to USER"</b> দিয়ে বদলাতে পারবেন।
+    <div class="note">বদলানোর আগে battery প্রস্তুতকারকের দেওয়া voltage মানগুলোর সাথে প্রতিটা মান মিলিয়ে নিন। Voltage-এর ঘরে 12V system অনুযায়ী মান দিতে হয়। যেমন 24V battery-র জন্যও 14.4 লিখবেন, 28.8 না।</div>
+  </li>
+</ol>
+
+<h3>Update tab</h3>
+<p>নতুন firmware বা app version থাকলে এখান থেকে update করুন। Firmware update নিজে থেকে হয় না, আপনি চাপলে তবেই হয়।</p>
+
+<h3>Cloud tab</h3>
+<p>অন্য Firebase project-এ সরে যেতে হলে এখান থেকে করবেন।</p>
+
+<h2>ধাপ ১০: প্রতিদিনের ব্যবহার</h2>
+<ul>
+  <li><b>Home:</b> Panel, Battery, Load-এর live মান, Alerts, আজকের energy। Only Controller Mode-এ হিসাব করা মানের পাশে <b>"হিসাব করা"</b> লেখা থাকে। Controller + BMS Mode-এ BMS-এর data না আসা পর্যন্ত Battery-তে <b>"Loading"</b> দেখায়।</li>
+  <li><b>Statistics:</b> আজ, গতকাল আর আগের দিনের হিসাব, সর্বকালের আর আজকের সর্বোচ্চ panel output।</li>
+  <li><b>Alerts:</b> controller-এর fault (যেমন Load short circuit, Battery over-voltage), BMS-এর data না আসা, model না মেলা ইত্যাদি।</li>
+</ul>
+
+<h2>ধাপ ১১: সমস্যা ও উদ্ধার</h2>
+<ul>
+  <li><b>নতুন phone, বা আবার setup:</b> ESP32-এর <b>BOOT বোতাম ১ সেকেন্ডে ৩ বার</b> চাপুন। Setup Wi-Fi ২০ মিনিট চালু থাকবে, এর মধ্যে app-এ Setup চালান। আগের data হারাবে না।</li>
+  <li><b>Wi-Fi বা বিদ্যুৎ চলে গেলে:</b> ESP32 নিজে বারবার আবার যুক্ত হওয়ার চেষ্টা করে। Setup Wi-Fi নিজে থেকে খোলে না।</li>
+  <li><b>সব মুছে নতুনের মতো করা (Factory reset):</b> BOOT বোতাম <b>টানা ১০ সেকেন্ড</b> চেপে ধরে রাখুন। ESP32-S3-এ লাল আলো জ্বলে-নিভে সময় গুনতে থাকবে। Firmware থেকে যাবে, বাকি সব setting মুছে যাবে।</li>
+  <li><b>ESP32-S3-এর আলোর অর্থ:</b>
+    <table>
+      <tr><th>রং</th><th>অর্থ</th></tr>
+      <tr><td>লাল</td><td>Wi-Fi নেই</td></tr>
+      <tr><td>নীলচে-সবুজ (teal)</td><td>Wi-Fi আছে, Firebase নেই</td></tr>
+      <tr><td>হলুদ</td><td>কোনো device (controller/BMS) যুক্ত নেই</td></tr>
+      <tr><td>সবুজ</td><td>সব ঠিক আছে</td></tr>
+    </table>
+  </li>
+  <li><b>Controller বা BMS যুক্ত হচ্ছে না:</b> SRNE বা JK-র নিজের app-এর connection বন্ধ করুন, ESP32-কে controller-এর কাছে আনুন, তারপর আবার খুঁজুন।</li>
+  <li><b>Firebase-এ error:</b> ধাপ ৮.২-এর Rules আবার Publish করুন, আর Authentication-এ Email/Password চালু আছে কি না দেখুন।</li>
+</ul>
+
+<h2>নিরাপত্তা নিয়ে কিছু কথা</h2>
+<ul>
+  <li>আপনার Firebase-এর email আর password শুধু phone-এর encrypted storage-এ থাকে। ESP32 নিজের আলাদা সীমিত account পায়, যা শুধু সেই gateway-এর data দেখতে পারে।</li>
+  <li>Setup Wi-Fi-এর password (<code>85208136</code>) সব gateway-এর জন্য একই, আর ইচ্ছা করেই প্রকাশ্য রাখা। এটা খোলে শুধু নতুন gateway-এ, অথবা BOOT ৩ বার চাপলে ২০ মিনিটের জন্য।</li>
+</ul>
+
+<p class="footer">NoxBrain Solar Monitoring System · Setup নির্দেশনা</p>
+</body>
+</html>

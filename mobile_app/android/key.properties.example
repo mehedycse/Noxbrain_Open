@@ -1,0 +1,8 @@
+# Android Keystore Signing Configuration Example
+# Copy this file to `key.properties` and fill in your signing certificate credentials.
+# `key.properties` is git-ignored and should NEVER be committed to version control.
+
+storePassword=your_keystore_password
+keyPassword=your_key_password
+keyAlias=your_key_alias
+storeFile=/path/to/your/keystore.jks

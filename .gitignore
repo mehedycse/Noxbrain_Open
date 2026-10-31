@@ -1,0 +1,49 @@
+# --- General & OS ---
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
+*~
+
+# --- Credentials & Secrets (CRITICAL) ---
+key.properties
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+.env
+.env.local
+.env.*.local
+google-services.json
+
+# --- PlatformIO & Embedded ---
+.pio/
+.pioenvs/
+.piolibdeps/
+.clang_complete
+.gcc-flags.json
+
+# --- Flutter / Dart ---
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+pubspec.lock
+build/
+*.apk
+*.aab
+
+# --- Android Gradle ---
+.gradle/
+**/android/.gradle/
+**/android/captures/
+**/android/local.properties
+**/android/**/build/
+
+# --- IDEs ---
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws

@@ -1,0 +1,28 @@
+{
+  "name": "NoxBrain Universal Solar Gateway",
+  "version": "1.1.42",
+  "new_install_prompt_erase": false,
+  "builds": [
+    {
+      "chipFamily": "ESP32-S3",
+      "parts": [
+        {
+          "path": "firmware/1.1.42-esp32-s3-bootloader-e01a2300de23.bin",
+          "offset": 0
+        },
+        {
+          "path": "firmware/1.1.42-esp32-s3-partitions-dd2b067d02ea.bin",
+          "offset": 32768
+        },
+        {
+          "path": "firmware/1.1.42-esp32-s3-ota_data-f94c5d786a7a.bin",
+          "offset": 57344
+        },
+        {
+          "path": "firmware/1.1.42-esp32-s3-app-a97461fef121.bin",
+          "offset": 65536
+        }
+      ]
+    }
+  ]
+}

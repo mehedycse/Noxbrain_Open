@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NoxBrain Solar Gateway - Online Web Flasher</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- ESP Web Tools Official Library -->
+  <script type="module" src="https://unpkg.com/esp-web-tools@10.4.0/dist/web/install-button.js?module"></script>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --card-inner: #1e293b;
+      --border: #334155;
+      --amber: #f59e0b;
+      --cyan: #06b6d4;
+      --green: #10b981;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', 'Hind Siliguri', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .container {
+      width: 100%;
+      max-width: 680px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 36px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--amber);
+      color: var(--amber);
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .firmware-card {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .fw-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+    .fw-val { font-size: 16px; font-weight: 800; color: var(--cyan); margin-top: 2px; }
+    .fw-chip {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--green);
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .step-item {
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+    }
+    .step-num {
+      width: 26px;
+      height: 26px;
+      line-height: 26px;
+      border-radius: 50%;
+      background: var(--amber);
+      color: #000;
+      font-weight: 800;
+      font-size: 12px;
+      margin: 0 auto 8px auto;
+    }
+    .step-title { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .step-desc { font-size: 10.5px; color: var(--text-muted); line-height: 1.3; }
+    
+    .install-box {
+      text-align: center;
+      padding: 24px;
+      background: radial-gradient(circle at center, rgba(6, 182, 212, 0.1) 0%, transparent 70%);
+      border: 1px dashed var(--border);
+      border-radius: 20px;
+      margin-bottom: 24px;
+    }
+    
+    /* ESP Web Tools Button Styling */
+    esp-web-install-button {
+      --esp-tools-button-border-radius: 12px;
+      --esp-tools-button-color: #000;
+      --esp-tools-button-background: #06b6d4;
+      --esp-tools-button-padding: 14px 28px;
+      --esp-tools-button-font-size: 15px;
+      --esp-tools-button-font-weight: 700;
+    }
+    .custom-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #000;
+      background: var(--cyan);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);
+    }
+    .custom-btn:hover {
+      background: #22d3ee;
+      transform: translateY(-2px);
+    }
+    .notice {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .tips-card {
+      background: var(--card-inner);
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      border-left: 4px solid var(--amber);
+    }
+    .tips-card strong { color: var(--amber); }
+    .footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    @media (max-width: 600px) {
+      .steps { grid-template-columns: 1fr; }
+      .container { padding: 20px; }
+      h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <div class="badge">NOXBRAIN 1-CLICK WEB FLASHER</div>
+      <h1>ESP32 সোলার ফার্মওয়্যার ফ্ল্যাশার</h1>
+      <p class="subtitle">Computer থেকে ESP32 flash করুন, তারপর Android app দিয়ে নিজের Wi-Fi, Firebase ও devices setup করুন।</p>
+    </div>
+
+    <div class="firmware-card">
+      <div>
+        <div class="fw-label">FIRMWARE VERSION</div>
+        <div id="firmware-version" class="fw-val">Firmware যাচাই হচ্ছে…</div>
+      </div>
+      <div>
+        <div class="fw-label">TARGET CHIP</div>
+        <div class="fw-val" style="color: var(--amber);">ESP32-S3 / ESP32</div>
+      </div>
+      <div id="firmware-badge" class="fw-chip">Binary verification</div>
+    </div>
+
+    <div class="steps">
+      <div class="step-item">
+        <div class="step-num">১</div>
+        <div class="step-title">ক্যাবলে যুক্ত করুন</div>
+        <div class="step-desc">ESP32 টি ডাটা ক্যাবল দিয়ে পিসি বা ল্যাপটপে লাগান</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">২</div>
+        <div class="step-title">ইনস্টলে ক্লিক করুন</div>
+        <div class="step-desc">নিচের বাটনে চাপ দিয়ে USB পোর্টটি সিলেক্ট করুন</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">৩</div>
+        <div class="step-title">অটোমেটিক রিবুট</div>
+        <div class="step-desc">ফ্ল্যাশ শেষে ESP32 নিজে NoxBrain-… নামের setup Wi-Fi চালু করবে। নিচের নির্দেশনা অনুযায়ী app দিয়ে setup করুন</div>
+      </div>
+    </div>
+
+    <div class="install-box">
+      <p id="release-status" role="status">বর্তমান firmware-এর chip, size ও checksum যাচাই হচ্ছে…</p>
+      <!-- Enable only after the loader verifies current board-specific artifacts. -->
+      <esp-web-install-button id="installer" style="display:none">
+        <button slot="activate" class="custom-btn">
+          ⚡ Connect & Install Firmware
+        </button>
+        <div slot="unsupported" style="color: #ef4444; font-size: 13px; font-weight: 600;">
+          ⚠️ আপনার বর্তমান ব্রাউজারে Web Serial সাপোর্ট নেই। দয়া করে <strong>Google Chrome</strong> অথবা <strong>Microsoft Edge</strong> ব্রাউজার ব্যবহার করুন।
+        </div>
+      </esp-web-install-button>
+
+      <div class="notice">
+        Computer-এর USB দিয়ে Web Serial ব্যবহার করে flash হবে। এরপর Android app-এর Setup Wizard দিয়ে নিজের Firebase, home Wi-Fi, controller ও optional BMS যুক্ত করুন।
+      </div>
+    </div>
+
+    <div class="tips-card">
+      <strong>ফ্ল্যাশের পরে App দিয়ে Setup:</strong>
+      <ul style="margin-left: 18px; margin-top: 6px;">
+        <li>App-এ নিজের Firebase যাচাই করুন (Internet চালু রেখে)।</li>
+        <li>ফোনের Wi-Fi settings খুলে <strong>NoxBrain-…</strong> নামের Wi-Fi-তে যুক্ত হন। Password: <strong>85208136</strong></li>
+        <li>"Internet নেই" দেখালে "যুক্ত থাকুন" দিন, তারপর app-এ ফিরে home Wi-Fi নির্বাচন করে password দিন।</li>
+        <li>ESP32 home Wi-Fi ও Firebase-এ যুক্ত হলে ফোনকে আবার home Wi-Fi বা mobile data-তে ফিরিয়ে app-এ যাচাই করুন, তারপর controller ও BMS নির্বাচন করুন।</li>
+        <li>পরে আবার setup করতে (যেমন নতুন ফোন): ESP32-এর <strong>BOOT</strong> বাটন <strong>১ সেকেন্ডের মধ্যে ৩ বার</strong> চাপুন। Setup Wi-Fi ২০ মিনিট চালু থাকবে। Wi-Fi বা বিদ্যুৎ চলে গেলে setup Wi-Fi নিজে চালু হয় না।</li>
+      </ul>
+    </div>
+
+    <div class="tips-card">
+      <strong>প্রয়োজনীয় টিপস:</strong>
+      <ul style="margin-left: 18px; margin-top: 6px;">
+        <li>যদি চিপ কানেক্ট না হয়, ESP32 এর <strong>BOOT</strong> বাটন চেপে ধরে ক্যাবলটি আবার প্লাগ-ইন করুন।</li>
+        <li>সাধারণ চার্জিং কেবল নয়, ডেটা ট্রান্সফার সাপোর্ট করে এমন <strong>Data Cable</strong> ব্যবহার করুন।</li>
+        <li>Windows পিসিতে ড্রাইভ না পেলে <a href="https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers" target="_blank" style="color: var(--cyan); text-decoration: underline;">CP210x</a> অথবা <a href="https://www.wch-ic.com/downloads/CH341SER_EXE.html" target="_blank" style="color: var(--cyan); text-decoration: underline;">CH340 Driver</a> ইনস্টল করে নিন।</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">
+    NoxBrain Solar Monitoring System &copy; 2026 &bull; Automated Deployment Engine
+  </div>
+
+<script src="./release-loader.js" defer></script>
+</body>
+</html>

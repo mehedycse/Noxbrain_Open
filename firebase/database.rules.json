@@ -1,0 +1,78 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "gateway_owners": {
+      "$gateway": {
+        ".read": "auth != null && (!data.exists() || data.val() === auth.uid)",
+        ".write": "auth != null && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))",
+        ".validate": "newData.isString()"
+      }
+    },
+    "gateway_devices": {
+      "$gateway": {
+        ".read": "auth != null && root.child('gateway_owners').child($gateway).val() === auth.uid",
+        ".write": "auth != null && root.child('gateway_owners').child($gateway).val() === auth.uid",
+        ".validate": "newData.isString()"
+      }
+    },
+    "gateway_devices_pending": {
+      "$gateway": {
+        ".read": "auth != null && root.child('gateway_owners').child($gateway).val() === auth.uid",
+        ".write": "auth != null && root.child('gateway_owners').child($gateway).val() === auth.uid",
+        ".validate": "newData.isString()"
+      }
+    },
+    "devices": {
+      "$gateway": {
+        ".read": "auth != null && (root.child('gateway_owners').child($gateway).val() === auth.uid || (root.child('gateway_devices').child($gateway).val() === auth.uid || root.child('gateway_devices_pending').child($gateway).val() === auth.uid))",
+        ".write": "auth != null && root.child('gateway_owners').child($gateway).val() === auth.uid",
+        "live": {
+          ".write": "auth != null && (root.child('gateway_devices').child($gateway).val() === auth.uid || root.child('gateway_devices_pending').child($gateway).val() === auth.uid)",
+          "controller_updated_at": { ".validate": "newData.isNumber()" },
+          "bms_updated_at": { ".validate": "newData.isNumber()" },
+          "gateway_updated_at": { ".validate": "newData.isNumber()" },
+          "timestamp": { ".validate": "newData.isNumber()" },
+          "connected": { ".validate": "newData.isBoolean()" },
+          "controller_connected": { ".validate": "newData.isBoolean()" },
+          "bms_connected": { ".validate": "newData.isBoolean()" },
+          "battery_calc_valid": { ".validate": "newData.isBoolean()" },
+          "battery_mode": { ".validate": "newData.val() === 'controller' || newData.val() === 'controller_bms'" },
+          "esp32_firmware_version": { ".validate": "newData.isString() && newData.val().length <= 32" }
+        },
+        "setup": {
+          ".write": "auth != null && (root.child('gateway_devices').child($gateway).val() === auth.uid || root.child('gateway_devices_pending').child($gateway).val() === auth.uid)",
+          "status": {
+            ".validate": "newData.hasChildren(['state', 'updated_at']) && newData.child('state').isString() && newData.child('updated_at').isNumber()"
+          }
+        },
+        "summary": {
+          ".write": "auth != null && (root.child('gateway_devices').child($gateway).val() === auth.uid || root.child('gateway_devices_pending').child($gateway).val() === auth.uid)"
+        },
+        "history": {
+          ".write": "auth != null && (root.child('gateway_devices').child($gateway).val() === auth.uid || root.child('gateway_devices_pending').child($gateway).val() === auth.uid)"
+        },
+        "lifetime": {
+          ".write": "auth != null && (root.child('gateway_devices').child($gateway).val() === auth.uid || root.child('gateway_devices_pending').child($gateway).val() === auth.uid)"
+        },
+        "config": {
+          ".write": "auth != null && (root.child('gateway_devices').child($gateway).val() === auth.uid || root.child('gateway_devices_pending').child($gateway).val() === auth.uid)"
+        },
+        "command_results": {
+          ".write": "auth != null && (root.child('gateway_devices').child($gateway).val() === auth.uid || root.child('gateway_devices_pending').child($gateway).val() === auth.uid)",
+          "$command": {
+            ".validate": "newData.hasChildren(['id', 'status']) && newData.child('id').val() === $command && (newData.child('status').val() === 'accepted' || newData.child('status').val() === 'confirmed' || newData.child('status').val() === 'failed' || newData.child('status').val() === 'expired')"
+          }
+        },
+        "commands": {
+          "queue": {
+            "$command": {
+              ".write": "auth != null && (root.child('gateway_devices').child($gateway).val() === auth.uid || root.child('gateway_devices_pending').child($gateway).val() === auth.uid) && !newData.exists()",
+              ".validate": "newData.hasChildren(['id', 'type', 'requested_at', 'expires_at']) && newData.child('id').val() === $command && newData.child('type').isString() && newData.child('expires_at').isNumber() && newData.child('requested_at').isNumber() && newData.child('expires_at').val() > newData.child('requested_at').val() && newData.child('expires_at').val() <= now + 120000"
+            }
+          }
+        }
+      }
+    }
+  }
+}
