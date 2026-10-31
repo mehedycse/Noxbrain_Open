@@ -15,9 +15,8 @@ An end-to-end, open-source solar monitoring and management solution for off-grid
 * **100% Free Self-Hosted Backend:**
   * Uses your own **Firebase Realtime Database** (Spark Plan, 100% free forever, no credit card required).
   * Your data remains strictly private in your own Google Cloud account.
-* **Reliable ESP32 Gateway Firmware:**
-  * Built on ESP-IDF / Arduino framework with PlatformIO.
-  * Supports **ESP32** and **ESP32-S3** (4MB flash minimum).
+* **Reliable ESP32-S3 Gateway Firmware:**
+  * Built specifically for **ESP32-S3** (4MB flash minimum) on ESP-IDF / Arduino framework with PlatformIO.
   * Native non-blocking Wi-Fi reconnect and OTA firmware update capabilities.
 * **Modern Flutter Android & Web App:**
   * Real-time metrics: PV voltage/current/power, battery SOC, charging/discharging curves, and load status.
@@ -40,8 +39,8 @@ An end-to-end, open-source solar monitoring and management solution for off-grid
                                           |
                                           v
                               +-----------------------+
-                              |     ESP32 Gateway     |
-                              |   (ESP32 / ESP32-S3)  |
+                              |   ESP32-S3 Gateway    |
+                              |  (ESP32-S3 DevKit-C1) |
                               +-----------+-----------+
                                           | (Wi-Fi HTTPS/WSS)
                                           v
@@ -62,9 +61,9 @@ An end-to-end, open-source solar monitoring and management solution for off-grid
 ## 📂 Repository Structure
 
 ```
-├── firmware/          # PlatformIO project for ESP32 and ESP32-S3 gateway
+├── firmware/          # PlatformIO project for ESP32-S3 gateway
 │   ├── src/           # Firmware source (main.cpp, universal_gateway.h)
-│   ├── platformio.ini # PlatformIO environment configurations
+│   ├── platformio.ini # PlatformIO environment configuration (esp32-s3-devkitc-1)
 │   └── partitions_4mb.csv
 ├── mobile_app/        # Flutter cross-platform application (Android / Web)
 │   ├── lib/           # Flutter UI, state management, and services
@@ -93,20 +92,21 @@ An end-to-end, open-source solar monitoring and management solution for off-grid
 
 ---
 
-### 2. Flash the ESP32 Gateway Firmware
+### 2. Flash the ESP32-S3 Gateway Firmware
+
+> [!NOTE]
+> This firmware is tailored and validated specifically for the **ESP32-S3** chip architecture (with minimum 4MB Flash).
 
 #### Option A: Using PlatformIO (Recommended for Developers)
 1. Install [VS Code](https://code.visualstudio.com/) and the **PlatformIO IDE** extension.
 2. Open the `firmware/` folder in VS Code.
-3. Connect your ESP32 or ESP32-S3 board via USB.
-4. Select your target environment in PlatformIO:
-   * `esp32-s3-devkitc-1` for ESP32-S3 boards.
-   * `esp32dev` for standard ESP32 boards.
+3. Connect your **ESP32-S3** board via USB.
+4. Select the environment `esp32-s3-devkitc-1` in PlatformIO.
 5. Click **Build** and **Upload**.
 
 #### Option B: Web Flasher (Easiest for End-Users)
 1. Open [`web_flasher/index.html`](web_flasher/index.html) in Chrome or Edge over HTTPS (or host locally using `python -m http.server`).
-2. Plug in your ESP32 board and click **Install**.
+2. Plug in your ESP32-S3 board and click **Install**.
 
 ---
 
@@ -136,7 +136,7 @@ To build a signed release APK:
 
 ### 4. Gateway Provisioning & Setup
 
-1. Power on the flashed ESP32 gateway.
+1. Power on the flashed ESP32-S3 gateway.
 2. On initial boot, the gateway broadcasts a setup Wi-Fi access point (e.g., `NoxBrain-XXXXXX`).
 3. Open the **Solar Monitor App** on your Android phone and follow the **Setup Wizard**:
    * Enter your home 2.4 GHz Wi-Fi credentials.
@@ -149,11 +149,11 @@ To build a signed release APK:
 ## 🔌 Hardware Compatibility & Pinout
 
 ### Required Components:
-* **ESP32 or ESP32-S3 Development Board** (minimum 4MB Flash).
+* **ESP32-S3 Development Board** (minimum 4MB Flash).
 * **Power Supply:** 5V 1A DC step-down converter from the battery or USB power.
 * **RS485 Transceiver (Optional for wired RS485):**
   * MAX485 or TTL-to-RS485 auto-flow module.
-  * Connect `RO` to ESP32 RX, `DI` to ESP32 TX, `VCC` to 3.3V/5V, and `GND` to common ground.
+  * Connect `RO` to ESP32-S3 RX, `DI` to ESP32-S3 TX, `VCC` to 3.3V/5V, and `GND` to common ground.
   * Connect `A` and `B` to the controller's RS485 port.
 
 ---
